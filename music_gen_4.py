@@ -14,7 +14,7 @@ client = SimpleUDPClient(sonic_pi_host, sonic_pi_port)
 
 # Function to send Sonic Pi code
 def send_code_to_sonic_pi(code):
-    client.send_message("/run-code", code)
+    client.send_message('/trigger/prophet', [70, 100, 8])
 
 # Function to record audio
 def record_audio(duration, fs=44100):
