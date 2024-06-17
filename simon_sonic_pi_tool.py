@@ -30,7 +30,7 @@ class Installation:
         self.base = os.path.expanduser(path)
         self.log = logger
         
-        # old for unix
+        # old for unix..
         # self.server_path = os.path.join(self.base, 'server/bin/sonic-pi-server.rb')
         # self.ruby_path = os.path.join(self.base, 'server/native/ruby/bin/ruby')
         
