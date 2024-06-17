@@ -7,8 +7,10 @@ import time
 from oscpy.client import OSCClient
 from oscpy.server import OSCThreadServer
 
-SERVER_OUTPUT = os.path.expanduser("~/.sonic-pi/log/server-output.log")
-SERVER_ERRORS = os.path.expanduser("~/.sonic-pi/log/server-errors.log")
+log_directory = os.path.expanduser(r"C:\Tools")
+os.makedirs(log_directory, exist_ok=True)
+SERVER_OUTPUT = os.path.join(log_directory, "server-output.log")
+SERVER_ERRORS = os.path.join(log_directory, "server-errors.log")
 
 class Logger:
     def __init__(self, verbose=True):
@@ -20,7 +22,7 @@ class Logger:
 
 class Installation:
     default_paths = [
-        'C:\Program Files\Sonic Pi\app'
+        r'C:\Program Files\Sonic Pi\app'
     ]
 
     # can't set those parameters for windows as I don't no to which one they correspond
@@ -28,11 +30,11 @@ class Installation:
         self.base = os.path.expanduser(path)
         self.log = logger
         
-        
+        # old for unix
         # self.server_path = os.path.join(self.base, 'server/bin/sonic-pi-server.rb')
         # self.ruby_path = os.path.join(self.base, 'server/native/ruby/bin/ruby')
         
-        # new?
+        # new for windows, doesnt work
         self.server_path = r'C:\Program Files\Sonic Pi\app\server\ruby\vendor\activesupport-7.0.6\lib\active_support\testing\parallelization\server.rb'
         self.ruby_path = r'C:\Program Files\Sonic Pi\app\server\native\ruby\bin\ruby.exe'
         
@@ -71,12 +73,12 @@ def check_server_running(cmd_port):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.bind(('127.0.0.1', cmd_port))
-            return False
+            return False  # If binding succeeded, port is not in use
     except OSError:
-        return True
+        return True # Port is in use, possibly by the server
 
 def stop_all_jobs(host, cmd_port):
-    send_osc_message(host, cmd_port, '/stop-all-jobs', [])
+    send_osc_message(host, cmd_port, '/stop_all_jobs', [])
 
 def record_audio(host, cmd_port, path):
     send_osc_message(host, cmd_port, '/start-recording', [])

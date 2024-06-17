@@ -13,6 +13,7 @@ live_loop :executor do
 end
 """
 
+# Simply read the code from the file
 file_path = r"current_sonic_pi_code.txt"
 with open(file_path, 'r') as file:
     sonic_pi_code = file.read()
@@ -20,6 +21,7 @@ with open(file_path, 'r') as file:
     
 ip = "127.0.0.1"
 port = 4560
-
+# Send the code to Sonic Pi
 client = udp_client.SimpleUDPClient(ip, port)
 client.send_message("/execute_code", [sonic_pi_code])
+
