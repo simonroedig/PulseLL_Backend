@@ -2,6 +2,7 @@ import asyncio
 from openai_client import OpenAIClient
 
 async def main():
+    # test commit
     openai = OpenAIClient()
     system_message = "Answer short and precise."
     user_message = "give me 10 random words."
