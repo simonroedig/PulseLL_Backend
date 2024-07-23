@@ -1,0 +1,10 @@
+Make sure, to paste the following lines into SonicPi, enable OSC, and click run:
+
+
+use_osc "localhost", 4560
+
+live_loop :executor do
+  use_real_time
+  code = sync "/osc*/execute_code"
+  eval(code[0])
+end

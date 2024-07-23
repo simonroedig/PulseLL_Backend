@@ -1,4 +1,5 @@
 from pythonosc import udp_client
+import os
 
 
 """
@@ -13,11 +14,13 @@ live_loop :executor do
 end
 """
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(script_dir, 'current_sonic_pi_code.txt')
+
 # Simply read the code from the file
-file_path = r"current_sonic_pi_code.txt"
 with open(file_path, 'r') as file:
     sonic_pi_code = file.read()
-    print(file)
+    print(sonic_pi_code)
     
 ip = "127.0.0.1"
 port = 4560
