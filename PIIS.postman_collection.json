@@ -1,0 +1,101 @@
+{
+	"info": {
+		"_postman_id": "36a5ac30-523b-44c8-ba2f-824b33c8fe80",
+		"name": "PIIS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32444864"
+	},
+	"item": [
+		{
+			"name": "http://127.0.0.1:5000/vital_parameters",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"heart_rate\": 53\r\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/vital_parameters",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"vital_parameters"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "http://127.0.0.1:5000/vital_parameters",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"heart_rate\": 53\r\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/vital_parameters",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"vital_parameters"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "Werkzeug/3.0.1 Python/3.12.4"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 23 Jul 2024 13:50:32 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "27"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Success\"\n}"
+				}
+			]
+		}
+	]
+}
