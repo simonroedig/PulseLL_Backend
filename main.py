@@ -24,7 +24,6 @@ prompt_constructor = PromptConstructor(heart_rate="0", song_genre="techno", curr
 sonic_pi_alternative = SonicPiAlternative(port=4560, ip="127.0.0.1")
 
 audio_server = AudioStreamServer(os.getenv("AUDIO_IPV4"), port = int(os.getenv("AUDIO_PORT")))
-audio_server.start_server_in_thread()
 
 openai = OpenAIClient(model="gpt-3.5-turbo-1106", max_response_tokens=300, temperature=0.7, top_p=0.8)
 
@@ -38,7 +37,7 @@ def receive_vital_parameters():
     global just_started_running
     
     data = request.get_json()
-    print(data)
+    ic(data)
     if not data:
         return jsonify({"error": "No data provided"}), 400
     if 'heart_rate' not in data:
@@ -48,6 +47,9 @@ def receive_vital_parameters():
     vital_logic.set_append_heart_rate(heart_rate)
     
     if vital_logic.has_significant_change_occurred() or just_started_running:
+        if just_started_running:
+            audio_server.start_server_in_thread()
+        
         just_started_running = False
         print("Significant change detected")
         
@@ -67,8 +69,8 @@ def receive_vital_parameters():
         # get, send and play the new sonic pi code
         current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
         sonic_pi_alternative.send_code(current_sonic_pi_code)
-        
-        
+            
+
     return jsonify({"message": "Success"}), 200
 
 
@@ -76,4 +78,4 @@ async def fetch_openai_completion(prompt):
     return await openai.get_completion(system_message="", user_message=prompt)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, host='0.0.0.0')
