@@ -1,4 +1,5 @@
 import statistics
+from icecream import ic
 
 class VitalThresholdLogic:
     def __init__(self, change_threshold, window_size):
@@ -62,15 +63,27 @@ class VitalThresholdLogic:
         Compare Change to Threshold 
         """
         # based on moving averages
-        print(self.heart_rate_history)
+        ic(self.heart_rate_history)
         if len(self.heart_rate_history) < 2 * self.window_size:
             return False
         
         # average of the last window_size heart rates
         recent_average = sum(self.heart_rate_history[-self.window_size:]) / self.window_size
+        ic(recent_average)
+
         # average of the previous window_size heart rates before the last
         previous_average = sum(self.heart_rate_history[-2*self.window_size:-self.window_size]) / self.window_size
+        ic(previous_average)
 
         # change in averages
         change = abs(recent_average - previous_average)
+        ic(change)
+
+        # reset the history if a significant change is detected
+        if change >= self.change_threshold:
+            self.heart_rate_history = self.heart_rate_history[-self.window_size:]
+            print("Resetting history of the heart rate:")
+            ic(self.heart_rate_history)
+
+        # return True if the change is significant    
         return change >= self.change_threshold
