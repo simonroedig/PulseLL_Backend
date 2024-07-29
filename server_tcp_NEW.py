@@ -4,7 +4,7 @@ import pyaudio
 import pickle
 import struct
 
-host_ip = '10.181.242.44'  # Localhost IP address
+host_ip = '10.181.216.240'  # Localhost IP address
 port = 9610
 
 def audio_stream():
