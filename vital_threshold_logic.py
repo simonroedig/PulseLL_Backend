@@ -62,6 +62,7 @@ class VitalThresholdLogic:
         Compare Change to Threshold 
         """
         # based on moving averages
+        print(self.heart_rate_history)
         if len(self.heart_rate_history) < 2 * self.window_size:
             return False
         

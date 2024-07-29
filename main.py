@@ -2,6 +2,11 @@ import asyncio
 from flask import Flask, app, jsonify, request
 from icecream import ic
 
+# python 3.9.(11)
+# myenv\Scripts\activate
+# "C:\Users\simon\AppData\Local\Programs\Python\Python39\python.exe"
+# virtualenv -p C:\Users\simon\AppData\Local\Programs\Python\Python39\python.exe venv
+
 # own libraries
 from openai_client import OpenAIClient
 #from audio_stream_empty import AudioStreamEmpty
@@ -10,7 +15,7 @@ from sonic_pi_alternative import SonicPiAlternative
 from vital_threshold_logic import VitalThresholdLogic
 from prompt_constructor import PromptConstructor
 
-vital_logic = VitalThresholdLogic(change_threshold=10, window_size=5) 
+vital_logic = VitalThresholdLogic(change_threshold=5, window_size=5) 
 prompt_constructor = PromptConstructor(heart_rate="0", song_genre="techno", current_sonic_pi_code="no_code_yet")
 sonic_pi_alternative = SonicPiAlternative(port=4560, ip="127.0.0.1")
 

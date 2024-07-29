@@ -1,8 +1,13 @@
 from openai import AsyncOpenAI
+from dotenv import load_dotenv
+import os
 
 class OpenAIClient:
     def __init__(self, model="gpt-3.5-turbo-1106", max_response_tokens=100, temperature=0.7, top_p=0.8):
-        self.client = AsyncOpenAI()
+        load_dotenv() 
+        api_key = os.getenv("OPENAI_API_KEY")
+        self.client = AsyncOpenAI(api_key=api_key)
+
         self.model = model
         self.max_response_tokens = max_response_tokens
         self.temperature = temperature

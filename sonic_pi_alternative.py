@@ -1,6 +1,3 @@
-from pythonosc import udp_client
-from icecream import ic
-
 """
 In Sonic-Pi one must run the following code first:
 
@@ -15,6 +12,7 @@ end
 
 import os
 from pythonosc import udp_client
+from icecream import ic
 
 class SonicPiAlternative:
     def __init__(self, port=4560, ip="127.0.0.1"):
