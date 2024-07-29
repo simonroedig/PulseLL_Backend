@@ -3,7 +3,7 @@ from flask import Flask, app, jsonify, request
 from icecream import ic
 
 # python 3.9.(11)
-# myenv\Scripts\activate
+# .venv\Scripts\activate
 # "C:\Users\simon\AppData\Local\Programs\Python\Python39\python.exe"
 # virtualenv -p C:\Users\simon\AppData\Local\Programs\Python\Python39\python.exe venv
 
