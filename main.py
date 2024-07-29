@@ -47,6 +47,7 @@ def receive_vital_parameters():
     vital_logic.set_append_heart_rate(heart_rate)
     
     if vital_logic.has_significant_change_occurred() or just_started_running:
+        # start audio server here to enforce starting it once only
         if just_started_running:
             audio_server.start_server_in_thread()
         
