@@ -1,6 +1,8 @@
 import asyncio
 from flask import Flask, app, jsonify, request
 from icecream import ic
+from dotenv import load_dotenv
+import os
 
 # python 3.9.(11)
 # .venv\Scripts\activate
@@ -9,15 +11,20 @@ from icecream import ic
 
 # own libraries
 from openai_client import OpenAIClient
-#from audio_stream_empty import AudioStreamEmpty
-#from sonic_pi_empty import SonicPiEmpty
+from audio_stream import AudioStreamServer
 from sonic_pi_alternative import SonicPiAlternative
 from vital_threshold_logic import VitalThresholdLogic
 from prompt_constructor import PromptConstructor
+load_dotenv()
 
 vital_logic = VitalThresholdLogic(change_threshold=5, window_size=5) 
+
 prompt_constructor = PromptConstructor(heart_rate="0", song_genre="techno", current_sonic_pi_code="no_code_yet")
+
 sonic_pi_alternative = SonicPiAlternative(port=4560, ip="127.0.0.1")
+
+audio_server = AudioStreamServer(os.getenv("AUDIO_IPV4"), port = int(os.getenv("AUDIO_PORT")))
+audio_server.start_server_in_thread()
 
 openai = OpenAIClient(model="gpt-3.5-turbo-1106", max_response_tokens=300, temperature=0.7, top_p=0.8)
 
