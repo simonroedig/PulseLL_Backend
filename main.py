@@ -14,7 +14,7 @@ from openai_client import OpenAIClient
 
 # you need to install https://vb-audio.com/Cable/
 # and use this as your audio output (microphone)
-from audio_stream import AudioStreamServer
+from audio_stream3 import AudioStreamServer
 from sonic_pi_alternative import SonicPiAlternative
 from vital_threshold_logic import VitalThresholdLogic
 from prompt_constructor import PromptConstructor
@@ -49,7 +49,7 @@ def receive_vital_parameters():
 
     heart_rate = data['heart_rate']
     unix_timestamp = data['unix_timestamp']
-    vital_logic.set_append_heart_rate_and_time(heart_rate)
+    vital_logic.set_append_heart_rate_and_time(heart_rate, unix_timestamp)
     
     if vital_logic.has_significant_change_occurred() or just_started_running:
         # Start audio server here to enforce starting it once only

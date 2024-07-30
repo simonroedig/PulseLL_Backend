@@ -5,15 +5,18 @@ class VitalThresholdLogic:
     def __init__(self, change_threshold, window_size):
         self.heart_rate_history = []
         self.complete_heart_rate_history = []
+        self.complete_timestamp_history = []
         self.change_threshold = change_threshold  
         # number of heart rate readings included in each average calculation. 
         # With heart rate data received every 5 seconds, 
         # a window size of 5 readings covers 25 seconds of data.
         self.window_size = window_size  
 
-    def set_append_heart_rate_and_time(self, heart_rate):
+    def set_append_heart_rate_and_time(self, heart_rate, unix_timestamp):
         self.heart_rate_history.append(heart_rate)
         self.complete_heart_rate_history.append(heart_rate)
+
+        self.complete_timestamp_history.append(unix_timestamp)
         
         if len(self.heart_rate_history) > 100:  # limit size to last 100 readings
             self.heart_rate_history.pop(0)
@@ -87,7 +90,9 @@ class VitalThresholdLogic:
     def reset(self):
         self.heart_rate_history = []
         self.complete_heart_rate_history = []
-        print("Resetting history of the heart rate.")
+
+        self.complete_timestamp_history = []
+        print("Resetting history of the heart rate and timestamps.")
 
     def create_hr_image(self):
         return
