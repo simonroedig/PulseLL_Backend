@@ -11,30 +11,32 @@ import os
 
 # own libraries
 from openai_client import OpenAIClient
+
+# you need to install https://vb-audio.com/Cable/
+# and use this as your audio output (microphone)
 from audio_stream import AudioStreamServer
 from sonic_pi_alternative import SonicPiAlternative
 from vital_threshold_logic import VitalThresholdLogic
 from prompt_constructor import PromptConstructor
+
 load_dotenv()
 
 vital_logic = VitalThresholdLogic(change_threshold=5, window_size=5) 
-
 prompt_constructor = PromptConstructor(heart_rate="0", song_genre="techno", current_sonic_pi_code="no_code_yet")
-
 sonic_pi_alternative = SonicPiAlternative(port=4560, ip="127.0.0.1")
-
 audio_server = AudioStreamServer(os.getenv("AUDIO_IPV4"), port = int(os.getenv("AUDIO_PORT")))
-
 openai = OpenAIClient(model="gpt-3.5-turbo-1106", max_response_tokens=300, temperature=0.7, top_p=0.8)
 
 app = Flask(__name__)
 
 just_started_running = True
+audio_server_started = False
 
 # gets called as often as frontend sends us the vital parameters
 @app.route('/vital_parameters', methods=['POST'])
 def receive_vital_parameters():
     global just_started_running
+    global audio_server_started
     
     data = request.get_json()
     ic(data)
@@ -47,9 +49,10 @@ def receive_vital_parameters():
     vital_logic.set_append_heart_rate(heart_rate)
     
     if vital_logic.has_significant_change_occurred() or just_started_running:
-        # start audio server here to enforce starting it once only
-        if just_started_running:
+        # Start audio server here to enforce starting it once only
+        if just_started_running and not audio_server_started:
             audio_server.start_server_in_thread()
+            audio_server_started = True
         
         just_started_running = False
         print("Significant change detected")
@@ -74,9 +77,24 @@ def receive_vital_parameters():
 
     return jsonify({"message": "Success"}), 200
 
+@app.route('/stop_workout', methods=['GET'])
+def receive_stop_workout():
+    global just_started_running
+    global audio_server_started
+
+    just_started_running = True
+    audio_server_started = False
+
+    audio_server.stop_server()
+    vital_logic.reset()
+
+    return jsonify({"message": "Success"}), 200
+
 
 async def fetch_openai_completion(prompt):
     return await openai.get_completion(system_message="", user_message=prompt)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    print("Starting Flask app...")
+    app.run(debug=True, port=5000, host='0.0.0.0', use_reloader=False)
+    print("!!!!! Flask app running !!!!!")

@@ -83,3 +83,8 @@ class VitalThresholdLogic:
 
         # return True if the change is significant    
         return change >= self.change_threshold
+    
+    def reset(self):
+        self.heart_rate_history = []
+        self.complete_heart_rate_history = []
+        print("Resetting history of the heart rate:")

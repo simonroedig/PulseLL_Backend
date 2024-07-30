@@ -7,7 +7,7 @@ import struct
 import signal
 import sys
 
-host_ip = '10.181.242.44'  # Server IP address
+host_ip = '10.181.216.240'  # Server IP address
 port = 9610
 running = True
 
