@@ -44,9 +44,12 @@ def receive_vital_parameters():
         return jsonify({"error": "No data provided"}), 400
     if 'heart_rate' not in data:
         return jsonify({"error": "Missing heart_rate parameter"}), 400
+    if 'unix_timestamp' not in data:
+        return jsonify({"error": "Missing unix_timestamp parameter"}), 400
 
     heart_rate = data['heart_rate']
-    vital_logic.set_append_heart_rate(heart_rate)
+    unix_timestamp = data['unix_timestamp']
+    vital_logic.set_append_heart_rate_and_time(heart_rate)
     
     if vital_logic.has_significant_change_occurred() or just_started_running:
         # Start audio server here to enforce starting it once only
@@ -89,6 +92,9 @@ def receive_stop_workout():
     vital_logic.reset()
 
     return jsonify({"message": "Success"}), 200
+
+
+@app.route('/get_heart_rate_img', methods=['GET'])
 
 
 async def fetch_openai_completion(prompt):

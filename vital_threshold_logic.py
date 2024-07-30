@@ -11,7 +11,7 @@ class VitalThresholdLogic:
         # a window size of 5 readings covers 25 seconds of data.
         self.window_size = window_size  
 
-    def set_append_heart_rate(self, heart_rate):
+    def set_append_heart_rate_and_time(self, heart_rate):
         self.heart_rate_history.append(heart_rate)
         self.complete_heart_rate_history.append(heart_rate)
         
@@ -87,4 +87,7 @@ class VitalThresholdLogic:
     def reset(self):
         self.heart_rate_history = []
         self.complete_heart_rate_history = []
-        print("Resetting history of the heart rate:")
+        print("Resetting history of the heart rate.")
+
+    def create_hr_image(self):
+        return
