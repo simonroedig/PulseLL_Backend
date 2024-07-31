@@ -14,7 +14,7 @@ from openai_client import OpenAIClient
 
 # you need to install https://vb-audio.com/Cable/
 # and use this as your audio output (microphone)
-from audio_stream_hsl import AudioStreamServer
+from audio_stream_hsl_new import AudioStreamServer
 from sonic_pi_alternative import SonicPiAlternative
 from vital_threshold_logic import VitalThresholdLogic
 from prompt_constructor import PromptConstructor
@@ -63,7 +63,7 @@ def receive_vital_parameters():
         # Start audio server here to enforce starting it once only
         if just_started_running and not audio_server_started:
             audio_server.start_server_in_thread()
-            audio_server.start_ffmpeg_full_recording(user_id)
+            #audio_server.save_recording_as_mp3(user_id)
             audio_server_started = True
         
         just_started_running = False
@@ -95,6 +95,8 @@ def receive_stop_workout():
 
     just_started_running = True
     audio_server_started = False
+
+    audio_server.save_recording_as_mp3(46234)
 
     audio_server.stop_server()
     vital_logic.reset()
