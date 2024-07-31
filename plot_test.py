@@ -24,4 +24,4 @@ ax.axis('off')
 
 # Saving the image
 plt.savefig('soundwave.png', bbox_inches='tight', pad_inches=0, facecolor='black')
-plt.close()
+plt.show()
