@@ -112,17 +112,17 @@ def receive_stop_workout():
     just_started_running = True
     audio_server_started = False
 
+    audio_server.stop_server()
+    vital_logic.reset()
+
     # check if a file with this workout_id exists in the full_recordings folder
     full_recordings_dir = os.path.join(root_working_dir, "full_recordings")
     files = os.listdir(full_recordings_dir)
     for file in files:
-        if workout_id in file and file.endswith('.mp3'):
+        if str(workout_id) in file and file.endswith('.mp3'):
             return jsonify({"message": "A song for this workout_id exists already. No new song saved. Workout stopped anyways."}), 200
 
     audio_server.save_recording_as_mp3(user_id, workout_id)
-
-    audio_server.stop_server()
-    vital_logic.reset()
 
     return jsonify({"message": "Success"}), 200
 
@@ -148,7 +148,7 @@ def get_full_song():
     # Find the file with the workout_id in its name
     mp3_file = None
     for file in files:
-        if workout_id in file and file.endswith('.mp3'):
+        if str(workout_id) in file and file.endswith('.mp3'):
             mp3_file = os.path.join(full_recordings_dir, file)
             break
 
