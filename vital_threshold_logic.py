@@ -126,3 +126,5 @@ class VitalThresholdLogic:
         plt.close()
         
         print(f"Heart rate image saved to {output_path}")
+
+    

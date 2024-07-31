@@ -1,5 +1,5 @@
 import asyncio
-from flask import Flask, app, jsonify, request
+from flask import Flask, app, jsonify, request, send_file
 from icecream import ic
 from dotenv import load_dotenv
 import os
@@ -14,8 +14,8 @@ from openai_client import OpenAIClient
 
 # you need to install https://vb-audio.com/Cable/
 # and use this as your audio output (microphone)
-from audio_stream_hsl_new import AudioStreamServer
-from sonic_pi_alternative import SonicPiAlternative
+from audio_stream_hsl import AudioStreamServer
+from sonic_pi import SonicPiAlternative
 from vital_threshold_logic import VitalThresholdLogic
 from prompt_constructor import PromptConstructor
 
@@ -29,15 +29,22 @@ openai = OpenAIClient(model="gpt-3.5-turbo-1106", max_response_tokens=300, tempe
 
 app = Flask(__name__)
 
+root_working_dir = os.getcwd()
+
 just_started_running = True
 audio_server_started = False
 user_id = -1
+#workout_id is five digits long
+workout_id = -1
+
 
 # gets called as often as frontend sends us the vital parameters
 @app.route('/vital_parameters', methods=['POST'])
 def receive_vital_parameters():
     global just_started_running
     global audio_server_started
+    global user_id
+    global workout_id
     
     data = request.get_json()
     ic(data)
@@ -52,11 +59,14 @@ def receive_vital_parameters():
         return jsonify({"error": "Missing song_genre parameter"}), 400
     if 'user_id' not in data:
         return jsonify({"error": "Missing user_id parameter"}), 400
+    if 'workout_id' not in data:
+        return jsonify({"error": "Missing workout_id parameter"}), 400
 
     heart_rate = data['heart_rate']
     unix_timestamp = data['unix_timestamp']
     song_genre = data['song_genre']
     user_id = data['user_id']
+    workout_id = data['workout_id']
 
     vital_logic.set_append_heart_rate_and_time(heart_rate, unix_timestamp)
     
@@ -94,6 +104,7 @@ def receive_stop_workout():
     global just_started_running
     global audio_server_started
     global user_id
+    global workout_id
 
     if user_id == -1:
         return jsonify({"error": "Can't stop workout, cause you haven't started it yet. No user_id provided"}), 400
@@ -101,15 +112,50 @@ def receive_stop_workout():
     just_started_running = True
     audio_server_started = False
 
-    audio_server.save_recording_as_mp3(user_id)
+    # check if a file with this workout_id exists in the full_recordings folder
+    full_recordings_dir = os.path.join(root_working_dir, "full_recordings")
+    files = os.listdir(full_recordings_dir)
+    for file in files:
+        if workout_id in file and file.endswith('.mp3'):
+            return jsonify({"message": "A song for this workout_id exists already. No new song saved. Workout stopped anyways."}), 200
+
+    audio_server.save_recording_as_mp3(user_id, workout_id)
 
     audio_server.stop_server()
     vital_logic.reset()
 
     return jsonify({"message": "Success"}), 200
 
+# is probably as you can get it in the frontend
+# @app.route('/get_heart_rate_img', methods=['POST'])
 
-@app.route('/get_heart_rate_img', methods=['GET'])
+@app.route('/get_full_song', methods=['POST'])
+def get_full_song():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    if 'workout_id' not in data:
+        return jsonify({"error": "Missing workout_id parameter"}), 400
+
+    workout_id = data['workout_id']
+
+    # Check the folder full_recordings and return the file that has the workout_id in its name
+    # The file will be an .mp3 file
+    full_recordings_dir = os.path.join(root_working_dir, "full_recordings")
+    files = os.listdir(full_recordings_dir)
+
+    # Find the file with the workout_id in its name
+    mp3_file = None
+    for file in files:
+        if workout_id in file and file.endswith('.mp3'):
+            mp3_file = os.path.join(full_recordings_dir, file)
+            break
+
+    if not mp3_file or not os.path.exists(mp3_file):
+        return jsonify({"error": "File not found"}), 404
+
+    return send_file(mp3_file, mimetype='audio/mpeg')
 
 
 async def fetch_openai_completion(prompt):

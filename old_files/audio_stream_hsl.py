@@ -70,7 +70,6 @@ class AudioStreamServer:
             while True:
                 data = stream.read(self.buffer_size, exception_on_overflow=False)
                 self.ffmpeg_process.stdin.write(data)
-                self.recording_data.append(data)
         except Exception as e:
             logging.error(f"Audio capture stopped due to: {e}")
         finally:
@@ -105,66 +104,19 @@ class AudioStreamServer:
         except Exception as e:
             logging.error(f"Error during cleanup: {e}")
 
-    def save_recording_as_mp3(self, user_id):
-        # Ensure the full_recordings directory exists
-        full_recordings_dir = "full_recordings"
-        if not os.path.exists(full_recordings_dir):
-            os.makedirs(full_recordings_dir)
-
-        # Check if recording_data is not empty
-        if not self.recording_data:
-            logging.error("No audio data available to save.")
-            return
-
-        # Create the raw audio file and write the recorded data to it
-        raw_audio_path = 'raw_audio.raw'
-        try:
-            with open(raw_audio_path, 'wb') as raw_audio_file:
-                raw_audio_file.write(b''.join(self.recording_data))
-            logging.info(f"Raw audio data written to {raw_audio_path}")
-        except Exception as e:
-            logging.error(f"Error writing raw audio data to file: {e}")
-            return
-
-        # Define the path for the mp3 file
-        output_path = os.path.join(full_recordings_dir, f"{user_id}.mp3")
-
-        # Use ffmpeg to convert raw audio data to mp3
+    def start_ffmpeg_full_recording(self, user_id):
+        folder = "full_recordings"
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        full_recording_file = os.path.join(folder, str(user_id) + ".mp3")
         ffmpeg_cmd = [
             'C:/ffmpeg/bin/ffmpeg',
-            '-f', 's16le',  # Raw audio format
+            '-f', 's16le',  # Use raw audio format
             '-ar', '44100',  # Sampling rate
             '-ac', '2',  # Number of channels
-            '-i', raw_audio_path,  # Input raw audio file
-            '-codec:a', 'mp3',  # Encode to MP3
-            '-b:a', '128k',  # Bitrate
-            output_path  # Output file
+            '-i', '-',  # Input from stdin
+            '-acodec', 'libmp3lame',  # Encode to MP3
+            '-b:a', '192k',  # Bitrate
+            full_recording_file
         ]
-
-        try:
-            # Run the ffmpeg command to convert the raw audio file to MP3
-            subprocess.run(ffmpeg_cmd, check=True)
-            logging.info(f"Recording saved as {output_path}")
-        except subprocess.CalledProcessError as e:
-            logging.error(f"Error converting raw audio to MP3: {e}")
-        finally:
-            # Clean up the temporary raw audio file
-            if os.path.exists(raw_audio_path):
-                os.remove(raw_audio_path)
-                logging.info(f"Temporary raw audio file {raw_audio_path} deleted")
-            else:
-                logging.error(f"Temporary raw audio file {raw_audio_path} not found for deletion")
-
-
-    def start_server(self):
-        self.recording_data = []
-        try:
-            self.ffmpeg_process = self.start_ffmpeg()
-            self.audio_thread = threading.Thread(target=self.audio_capture)
-            self.audio_thread.start()
-            self.http_thread = threading.Thread(target=self.start_http_server)
-            self.http_thread.start()
-            print(f'Serving HLS stream on http://{self.host_ip}:{self.port}')
-        except Exception as e:
-            print(f"Error starting server: {e}")
-            self.cleanup()
+        ffmpeg_process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
