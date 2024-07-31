@@ -31,6 +31,7 @@ app = Flask(__name__)
 
 just_started_running = True
 audio_server_started = False
+user_id = -1
 
 # gets called as often as frontend sends us the vital parameters
 @app.route('/vital_parameters', methods=['POST'])
@@ -92,11 +93,15 @@ def receive_vital_parameters():
 def receive_stop_workout():
     global just_started_running
     global audio_server_started
+    global user_id
+
+    if user_id == -1:
+        return jsonify({"error": "Can't stop workout, cause you haven't started it yet. No user_id provided"}), 400
 
     just_started_running = True
     audio_server_started = False
 
-    audio_server.save_recording_as_mp3(46234)
+    audio_server.save_recording_as_mp3(user_id)
 
     audio_server.stop_server()
     vital_logic.reset()
