@@ -14,7 +14,7 @@ from openai_client import OpenAIClient
 
 # you need to install https://vb-audio.com/Cable/
 # and use this as your audio output (microphone)
-from audio_stream3 import AudioStreamServer
+from audio_stream_hsl import AudioStreamServer
 from sonic_pi_alternative import SonicPiAlternative
 from vital_threshold_logic import VitalThresholdLogic
 from prompt_constructor import PromptConstructor
@@ -40,21 +40,30 @@ def receive_vital_parameters():
     
     data = request.get_json()
     ic(data)
+
     if not data:
         return jsonify({"error": "No data provided"}), 400
     if 'heart_rate' not in data:
         return jsonify({"error": "Missing heart_rate parameter"}), 400
     if 'unix_timestamp' not in data:
         return jsonify({"error": "Missing unix_timestamp parameter"}), 400
+    if 'song_genre' not in data:
+        return jsonify({"error": "Missing song_genre parameter"}), 400
+    if 'user_id' not in data:
+        return jsonify({"error": "Missing user_id parameter"}), 400
 
     heart_rate = data['heart_rate']
     unix_timestamp = data['unix_timestamp']
+    song_genre = data['song_genre']
+    user_id = data['user_id']
+
     vital_logic.set_append_heart_rate_and_time(heart_rate, unix_timestamp)
     
     if vital_logic.has_significant_change_occurred() or just_started_running:
         # Start audio server here to enforce starting it once only
         if just_started_running and not audio_server_started:
             audio_server.start_server_in_thread()
+            audio_server.start_ffmpeg_full_recording(user_id)
             audio_server_started = True
         
         just_started_running = False
@@ -77,7 +86,6 @@ def receive_vital_parameters():
         current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
         sonic_pi_alternative.send_code(current_sonic_pi_code)
             
-
     return jsonify({"message": "Success"}), 200
 
 @app.route('/stop_workout', methods=['GET'])

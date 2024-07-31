@@ -1,5 +1,8 @@
 import statistics
 from icecream import ic
+import datetime
+import matplotlib.pyplot as plt
+import os
 
 class VitalThresholdLogic:
     def __init__(self, change_threshold, window_size):
@@ -94,5 +97,32 @@ class VitalThresholdLogic:
         self.complete_timestamp_history = []
         print("Resetting history of the heart rate and timestamps.")
 
-    def create_hr_image(self):
-        return
+    def create_hr_image(self, user_id):
+        # Check if there is data to plot
+        if not self.complete_heart_rate_history or not self.complete_timestamp_history:
+            print("No data to plot")
+            return
+        
+        # Convert UNIX timestamps to human-readable time
+        times = [datetime.datetime.fromtimestamp(ts) for ts in self.complete_timestamp_history]
+        
+        # Create the plot
+        plt.figure(figsize=(10, 5))
+        plt.plot(times, self.complete_heart_rate_history, marker='o')
+        
+        # Format the plot
+        plt.xlabel('Time')
+        plt.ylabel('Heart Rate')
+        plt.title(f"Your Activity on Day {times[0].strftime('%Y-%m-%d')}")
+        plt.grid(True)
+        
+        # Create directory if it doesn't exist
+        output_dir = "heart_rate_images"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Save the plot
+        output_path = os.path.join(output_dir, f"id_{user_id}_heart_rate_{times[0].strftime('%Y%m%d')}.png")
+        plt.savefig(output_path)
+        plt.close()
+        
+        print(f"Heart rate image saved to {output_path}")
