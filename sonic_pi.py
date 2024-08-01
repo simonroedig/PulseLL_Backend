@@ -29,6 +29,7 @@ class SonicPi:
     def send_silent_code(self):
         # i just send some normal sonic pi code with amplitude 0
         # with this sonic pi keeps running but will not play any sound
+        # but this does is not really useful actually
         silent_code = """
         use_bpm 116
 
@@ -61,9 +62,9 @@ class SonicPi:
         self.client.send_message("/execute_code", [silent_code])
 
     def stop_all(self):
+        # this does not work yet
         self.client.send_message("/execute_code", "stop_me_pls")
 
-        
     @staticmethod
     def _clean_sonic_pi_code(code):
         # Remove the ```ruby and ``` at the start and end
@@ -75,6 +76,6 @@ class SonicPi:
             code = code[:-len('```')].strip()
         return code
     
-#SonicPi().stop_all()
+
 
 
