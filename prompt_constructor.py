@@ -59,7 +59,8 @@ class PromptConstructor:
         Please make sure, that your newly generated code also adheres to such a format 
         as in those examples in terms of compilability. As mentioned, you are of course free to
         generate music how you like but must fit the "measured_parameters". Be very creative! The code must work with
-        our setup as it does in our example.
+        our setup! Ensure the code will run correctly in Sonic-Pi. Your response must be ready to copy and paste
+        into Sonic-Pi and runable without any errors!
 
         IMPORTANT:
         Your response must only include your new generated Sonic-Pi code. Refrain from responding with any 
@@ -509,12 +510,19 @@ class PromptConstructor:
         self.song_genre = song_genre
         self.activity_type = activity_type
         self.current_sonic_pi_code = current_sonic_pi_code
+        self.intro_code = ""
         
     def set_sonic_pi_code(self, new_code):
         self.current_sonic_pi_code = new_code
+
+    def set_intro_code(self, new_intro_code):
+        self.intro_code = new_intro_code
     
     def get_sonic_pi_code(self):
         return self.current_sonic_pi_code
+    
+    def get_intro_code(self):
+        return self.intro_code
     
     def set_heart_rate(self, new_heart_rate):
         self.heart_rate = new_heart_rate
@@ -546,7 +554,7 @@ class PromptConstructor:
     def to_json_only_intro(self):
         data = {
             "our_idea": self.our_idea.replace('\n', ' ').strip(),
-            "your_task_intro": self.your_task.replace('\n', ' ').strip(),
+            "your_task_intro": self.your_task_intro.replace('\n', ' ').strip(),
             "example_explanation": self.example_explanation.replace('\n', ' ').strip(),
             "example_intro": self.example_intro.replace('\n', ' ').strip(),
             "measured_parameters": {

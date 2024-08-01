@@ -25,7 +25,7 @@ vital_logic = VitalThresholdLogic(change_threshold=5, window_size=5)
 prompt_constructor = PromptConstructor(heart_rate="0", song_genre="techno", activity_type="running", current_sonic_pi_code="no_code_yet")
 sonic_pi = SonicPi(port=4560, ip="127.0.0.1")
 audio_server = AudioStreamServer(os.getenv("AUDIO_IPV4"), port = int(os.getenv("AUDIO_PORT")))
-openai = OpenAIClient(model="gpt-3.5-turbo-1106", max_response_tokens=300, temperature=0.7, top_p=0.8)
+openai = OpenAIClient(model="gpt-3.5-turbo-1106", max_response_tokens=3000, temperature=0.7, top_p=0.8)
 
 app = Flask(__name__)
 
@@ -97,12 +97,20 @@ def receive_vital_parameters():
         openAI_response = asyncio.run(fetch_openai_completion(prompt))
         ic(openAI_response)
         new_sonic_pi_code = openAI_response.choices[0].message.content
+        ic(new_sonic_pi_code)
         
-        if not just_started_running:
+        if just_started_running:
+            prompt_constructor.set_intro_code(new_sonic_pi_code)
+        else:
             prompt_constructor.set_sonic_pi_code(new_sonic_pi_code)
         
         # get, send and play the new sonic pi code
-        current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
+        if just_started_running:
+            current_sonic_pi_code = prompt_constructor.get_intro_code()
+        else:
+            current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
+
+        sonic_pi.stop_all()
         sonic_pi.send_code(current_sonic_pi_code)
 
         just_started_running = False

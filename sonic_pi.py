@@ -60,14 +60,21 @@ class SonicPi:
         # Send the OSC message to stop all sound and processes
         self.client.send_message("/execute_code", [silent_code])
 
+    def stop_all(self):
+        self.client.send_message("/execute_code", "stop_me_pls")
+
         
     @staticmethod
     def _clean_sonic_pi_code(code):
         # Remove the ```ruby and ``` at the start and end
         if code.startswith('```ruby'):
             code = code[len('```ruby'):].strip()
+        if code.startswith('```sonic-pi'):
+            code = code[len('```sonic-pi'):].strip()
         if code.endswith('```'):
             code = code[:-len('```')].strip()
         return code
+    
+#SonicPi().stop_all()
 
 
