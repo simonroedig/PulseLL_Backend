@@ -1,7 +1,7 @@
 import json
 
 class PromptConstructor:
-    def __init__(self, heart_rate, song_genre, current_sonic_pi_code):
+    def __init__(self, heart_rate, song_genre, activity_type, current_sonic_pi_code):
         self.our_idea = """
         Our idea is PulseLL: The user is doing an exercice, e.g. running. We measure
         his vital parameters (e.g. heart_rate) constantly. Based on this vital parameters
@@ -78,6 +78,7 @@ class PromptConstructor:
         """
         self.heart_rate = heart_rate
         self.song_genre = song_genre
+        self.activity_type = activity_type
         self.current_sonic_pi_code = current_sonic_pi_code
         
     def set_sonic_pi_code(self, new_code):
@@ -88,6 +89,12 @@ class PromptConstructor:
     
     def set_heart_rate(self, new_heart_rate):
         self.heart_rate = new_heart_rate
+
+    def set_song_genre(self, new_song_genre):
+        self.song_genre = new_song_genre
+
+    def set_activity_type(self, new_activity_type):
+        self.activity_type = new_activity_type
         
     def to_json(self):
         data = {
@@ -96,7 +103,8 @@ class PromptConstructor:
             "example": self.example.replace('\n', ' ').strip(),
             "measured_parameters": {
                 "heart_rate": self.heart_rate,
-                "song_genre": self.song_genre
+                "song_genre": self.song_genre,
+                "activity_type": self.activity_type
             },
             "current_sonic_pi_code": self.current_sonic_pi_code
         }

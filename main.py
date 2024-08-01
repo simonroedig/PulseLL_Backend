@@ -15,15 +15,15 @@ from openai_client import OpenAIClient
 # you need to install https://vb-audio.com/Cable/
 # and use this as your audio output (microphone)
 from audio_stream_hsl import AudioStreamServer
-from sonic_pi import SonicPiAlternative
+from sonic_pi import SonicPi
 from vital_threshold_logic import VitalThresholdLogic
 from prompt_constructor import PromptConstructor
 
 load_dotenv()
 
 vital_logic = VitalThresholdLogic(change_threshold=5, window_size=5) 
-prompt_constructor = PromptConstructor(heart_rate="0", song_genre="techno", current_sonic_pi_code="no_code_yet")
-sonic_pi_alternative = SonicPiAlternative(port=4560, ip="127.0.0.1")
+prompt_constructor = PromptConstructor(heart_rate="0", song_genre="techno", activity_type="running", current_sonic_pi_code="no_code_yet")
+sonic_pi = SonicPi(port=4560, ip="127.0.0.1")
 audio_server = AudioStreamServer(os.getenv("AUDIO_IPV4"), port = int(os.getenv("AUDIO_PORT")))
 openai = OpenAIClient(model="gpt-3.5-turbo-1106", max_response_tokens=300, temperature=0.7, top_p=0.8)
 
@@ -61,12 +61,15 @@ def receive_vital_parameters():
         return jsonify({"error": "Missing user_id parameter"}), 400
     if 'workout_id' not in data:
         return jsonify({"error": "Missing workout_id parameter"}), 400
+    if 'activity_type' not in data:
+        return jsonify({"error": "Missing activity_type parameter"}), 400
 
     heart_rate = data['heart_rate']
     unix_timestamp = data['unix_timestamp']
     song_genre = data['song_genre']
     user_id = data['user_id']
     workout_id = data['workout_id']
+    activity_type = data['activity_type']
 
     vital_logic.set_append_heart_rate_and_time(heart_rate, unix_timestamp)
     
@@ -84,6 +87,8 @@ def receive_vital_parameters():
         ic(current_median_heart_rate)
         
         prompt_constructor.set_heart_rate(current_median_heart_rate)
+        prompt_constructor.set_song_genre(song_genre)
+        prompt_constructor.set_activity_type(activity_type)
         prompt = prompt_constructor.to_json()
         ic(prompt)
         
@@ -95,7 +100,7 @@ def receive_vital_parameters():
         
         # get, send and play the new sonic pi code
         current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
-        sonic_pi_alternative.send_code(current_sonic_pi_code)
+        sonic_pi.send_code(current_sonic_pi_code)
             
     return jsonify({"message": "Success"}), 200
 
@@ -114,6 +119,7 @@ def receive_stop_workout():
 
     audio_server.stop_server()
     vital_logic.reset()
+    sonic_pi.send_silent_code()
 
     # check if a file with this workout_id exists in the full_recordings folder
     full_recordings_dir = os.path.join(root_working_dir, "full_recordings")
@@ -126,8 +132,38 @@ def receive_stop_workout():
 
     return jsonify({"message": "Success"}), 200
 
-# is probably as you can get it in the frontend
+# is probably not needed as you can get it in the frontend
 # @app.route('/get_heart_rate_img', methods=['POST'])
+
+@app.route('/get_thumbnail_img', methods=['POST'])
+def get_thumbnail_img():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    if 'user_id' not in data:
+        return jsonify({"error": "Missing user_id parameter"}), 400
+    if 'workout_id' not in data:
+        return jsonify({"error": "Missing workout_id parameter"}), 400
+
+    user_id = data['user_id']
+    workout_id = data['workout_id']
+
+    # Check the folder heart_rate_images and return the file that has the user_id and workout_id in its name
+    # The file will be an .png file
+    thumbnail_img_dir = os.path.join(root_working_dir, "thumbnail_img")
+    files = os.listdir(thumbnail_img_dir)
+
+    png_file = None
+    for file in files:
+        if (str(user_id) in file) and (str(workout_id) in file) and (file.endswith('.png')):
+            png_file = os.path.join(thumbnail_img_dir, file)
+            break
+
+    if not png_file or not os.path.exists(png_file):
+        return jsonify({"error": "File not found"}), 404
+
+    return send_file(png_file, mimetype='image/png')
 
 @app.route('/get_full_song', methods=['POST'])
 def get_full_song():
