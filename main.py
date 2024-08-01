@@ -134,6 +134,7 @@ def receive_stop_workout():
 
     return jsonify({"message": "Success"}), 200
 
+
 # is probably not needed as you can get it in the frontend
 # @app.route('/get_heart_rate_img', methods=['POST'])
 
