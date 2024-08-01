@@ -1,0 +1,17 @@
+use_bpm 90
+
+live_loop :intro_drums do
+  sample :bd_tek, amp: 2
+  sleep 1
+  sample :elec_snare, rate: 0.75, amp: 1.5
+  sleep 1
+  sample :elec_cymbal, rate: 1.5, amp: 1.5, release: 1.5
+  sleep 1
+  sample :drum_tom_lo_hard, rate: 0.5, amp: 1.5
+  sleep 1
+end
+
+live_loop :ambient_fx do
+  sample :ambi_choir, rate: 0.25, amp: 2, attack: 1, release: 3
+  sleep 8
+end

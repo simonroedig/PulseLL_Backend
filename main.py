@@ -79,28 +79,33 @@ def receive_vital_parameters():
             audio_server.start_server_in_thread()
             #audio_server.save_recording_as_mp3(user_id)
             audio_server_started = True
-        
-        just_started_running = False
-        print("Significant change detected")
-        
+                
         current_median_heart_rate = vital_logic.get_current_median_heartrate(check_last_x_heart_rates=3)
         ic(current_median_heart_rate)
         
         prompt_constructor.set_heart_rate(current_median_heart_rate)
         prompt_constructor.set_song_genre(song_genre)
         prompt_constructor.set_activity_type(activity_type)
-        prompt = prompt_constructor.to_json()
+    
+        if just_started_running:
+            prompt = prompt_constructor.to_json_only_intro()
+        else:
+            prompt = prompt_constructor.to_json()
+
         ic(prompt)
         
         openAI_response = asyncio.run(fetch_openai_completion(prompt))
         ic(openAI_response)
         new_sonic_pi_code = openAI_response.choices[0].message.content
         
-        prompt_constructor.set_sonic_pi_code(new_sonic_pi_code)
+        if not just_started_running:
+            prompt_constructor.set_sonic_pi_code(new_sonic_pi_code)
         
         # get, send and play the new sonic pi code
         current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
         sonic_pi.send_code(current_sonic_pi_code)
+
+        just_started_running = False
             
     return jsonify({"message": "Success"}), 200
 
