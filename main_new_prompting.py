@@ -3,6 +3,11 @@ from flask import Flask, app, jsonify, request, send_file
 from icecream import ic
 from dotenv import load_dotenv
 import os
+import time
+import pygetwindow as gw
+import pyautogui
+import threading
+from multiprocessing import Process
 
 # python 3.9.(11)
 # .venv\Scripts\activate
@@ -17,7 +22,7 @@ from openai_client import OpenAIClient
 from audio_stream_hsl import AudioStreamServer
 from sonic_pi import SonicPi
 from vital_threshold_logic import VitalThresholdLogic
-from prompt_constructor import PromptConstructor
+from prompt_constructor_new import PromptConstructor
 
 load_dotenv()
 
@@ -79,31 +84,43 @@ def receive_vital_parameters():
             audio_server.start_server_in_thread()
             #audio_server.save_recording_as_mp3(user_id)
             audio_server_started = True
-        
-        print("Significant change detected")
-        
+                
         current_median_heart_rate = vital_logic.get_current_median_heartrate(check_last_x_heart_rates=3)
         ic(current_median_heart_rate)
         
         prompt_constructor.set_heart_rate(current_median_heart_rate)
         prompt_constructor.set_song_genre(song_genre)
         prompt_constructor.set_activity_type(activity_type)
-        prompt = prompt_constructor.to_json()
-        ic(prompt)
+    
+        if just_started_running:
+            prompt = prompt_constructor.to_json_only_intro()
+        else:
+            prompt = prompt_constructor.to_json()
+
+        #ic(prompt)
         
         openAI_response = asyncio.run(fetch_openai_completion(prompt))
-        ic(openAI_response)
+        #ic(openAI_response)
         new_sonic_pi_code = openAI_response.choices[0].message.content
-        ic(new_sonic_pi_code)
+        #ic(new_sonic_pi_code)
         
-        prompt_constructor.set_sonic_pi_code(new_sonic_pi_code)
+        if just_started_running:
+            prompt_constructor.set_intro_code(new_sonic_pi_code)
+        else:
+            prompt_constructor.set_sonic_pi_code(new_sonic_pi_code)
         
         # get, send and play the new sonic pi code
-        current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
-        sonic_pi.send_code(current_sonic_pi_code)
+        if just_started_running:
+            current_sonic_pi_code = prompt_constructor.get_intro_code()
+        else:
+            current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
+
+        async_stop_sonic_pi()   
+        async_run_sonic_pi(current_sonic_pi_code)
+        #sonic_pi.send_code(current_sonic_pi_code)
 
         just_started_running = False
-
+            
     return jsonify({"message": "Success"}), 200
 
 @app.route('/stop_workout', methods=['GET'])
@@ -121,7 +138,8 @@ def receive_stop_workout():
 
     audio_server.stop_server()
     vital_logic.reset()
-    sonic_pi.send_silent_code()
+
+    async_stop_sonic_pi()
 
     # check if a file with this workout_id exists in the full_recordings folder
     full_recordings_dir = os.path.join(root_working_dir, "full_recordings")
@@ -133,7 +151,6 @@ def receive_stop_workout():
     audio_server.save_recording_as_mp3(user_id, workout_id)
 
     return jsonify({"message": "Success"}), 200
-
 
 # is probably not needed as you can get it in the frontend
 # @app.route('/get_heart_rate_img', methods=['POST'])
@@ -200,7 +217,68 @@ def get_full_song():
 async def fetch_openai_completion(prompt):
     return await openai.get_completion(system_message="", user_message=prompt)
 
+
+def bring_sonic_pi_to_foreground():
+    # List all windows
+    windows = gw.getAllTitles()
+    
+    # Look for a window with 'Sonic Pi' in the title
+    sonic_pi_window = None
+    for window in windows:
+        if 'Sonic Pi' in window:
+            sonic_pi_window = gw.getWindowsWithTitle(window)[0]
+            break
+
+    if sonic_pi_window:
+        # Bring the Sonic Pi window to the foreground
+        sonic_pi_window.activate()
+        print("Sonic Pi window brought to foreground.")
+        return True
+    else:
+        print("Sonic Pi window not found.")
+        return False
+
+def trigger_alt_s():
+    # Wait a moment to ensure the window is active
+    time.sleep(0.1)
+    
+    # Press Alt+S
+    pyautogui.hotkey('alt', 's')
+    print("Triggered Alt+S shortcut.")
+
+def trigger_alt_r():
+    # Wait a moment to ensure the window is active
+    time.sleep(0.1)
+    
+    # Press Alt+S
+    pyautogui.hotkey('alt', 'r')
+    print("Triggered Alt+S shortcut.")
+
+window_lock = threading.Lock()
+
+def stop_sonic_pi():
+    with window_lock:
+        if bring_sonic_pi_to_foreground():
+            trigger_alt_s()
+
+def run_sonic_pi(code):
+    with window_lock:
+        if bring_sonic_pi_to_foreground():
+            trigger_alt_r()
+            sonic_pi.send_code(code)
+
+def async_stop_sonic_pi():
+    process = Process(target=stop_sonic_pi)
+    process.start()
+    process.join()  # Wait for the process to finish if needed
+
+
+def async_run_sonic_pi(code):
+    process = Process(target=run_sonic_pi, args=(code,))
+    process.start()
+    process.join()  # Wait for the process to finish if needed
+
 if __name__ == "__main__":
     print("Starting Flask app...")
-    app.run(debug=True, port=5000, host='0.0.0.0', use_reloader=False)
+    app.run(debug=True, port=5000, host='0.0.0.0', use_reloader=False, threaded=True)
     print("!!!!! Flask app running !!!!!")

@@ -31,30 +31,21 @@ class SonicPi:
         # with this sonic pi keeps running but will not play any sound
         # but this does is not really useful actually
         silent_code = """
-        use_bpm 116
+        use_bpm 90
 
-        live_loop :heartbeat do
-        sample :bd_tek, rate: 1, amp: 0
-        sleep 0.5
-        sample :bd_tek, rate: 0.75, amp: 0
-        sleep 0.5
+        live_loop :intro_drums do
+        sample :bd_tek, amp: 2
+        sleep 1
+        sample :elec_snare, rate: 0.75, amp: 1.5
+        sleep 1
+        sample :elec_cymbal, rate: 1.5, amp: 1.5, release: 1.5
+        sleep 1
+        sample :drum_tom_lo_hard, rate: 0.5, amp: 1.5
+        sleep 1
         end
 
-        live_loop :synth_rhythm do
-        use_synth :tb303
-        play :c3, release: 0.25, cutoff: rrand(70, 130), amp: 0
-        sleep 0.25
-        play :e3, release: 0.25, cutoff: rrand(70, 130), amp: 0
-        sleep 0.25
-        play :g3, release: 0.25, cutoff: rrand(70, 130), amp: 0
-        sleep 0.25
-        play :b3, release: 0.25, cutoff: rrand(70, 130), amp: 0
-        sleep 0.25
-        end
-
-        live_loop :ambient_effects do
-        use_synth :prophet
-        play choose([:c2, :e2, :g2]), release: 3, cutoff: rrand(60, 120), amp: 0
+        live_loop :ambient_fx do
+        sample :ambi_choir, rate: 0.25, amp: 2, attack: 1, release: 3
         sleep 8
         end
         """
@@ -63,7 +54,25 @@ class SonicPi:
 
     def stop_all(self):
         # this does not work yet
-        self.client.send_message("/execute_code", "stop_me_pls")
+        sonic_pi_code = """
+        # Stop all existing live loops by redefining them as stopped
+        live_loop :heartbeat do
+        stop
+        end
+
+        live_loop :synth_rhythm do
+        stop
+        end
+
+        live_loop :ambient_effects do
+        stop
+        end
+        """
+        self.client.send_message("/execute_code", [sonic_pi_code])
+
+    def stop_execution(self):
+        # Send a stop command to Sonic Pi
+        self.client.send_message("/stop_execution", [])
 
     @staticmethod
     def _clean_sonic_pi_code(code):
@@ -76,6 +85,3 @@ class SonicPi:
             code = code[:-len('```')].strip()
         return code
     
-
-
-

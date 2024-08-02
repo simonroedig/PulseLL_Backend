@@ -17,7 +17,7 @@ from openai_client import OpenAIClient
 from audio_stream_hsl import AudioStreamServer
 from sonic_pi import SonicPi
 from vital_threshold_logic import VitalThresholdLogic
-from prompt_constructor import PromptConstructor
+from prompt_constructor_old import PromptConstructor
 
 load_dotenv()
 
@@ -79,19 +79,16 @@ def receive_vital_parameters():
             audio_server.start_server_in_thread()
             #audio_server.save_recording_as_mp3(user_id)
             audio_server_started = True
-                
+        
+        print("Significant change detected")
+        
         current_median_heart_rate = vital_logic.get_current_median_heartrate(check_last_x_heart_rates=3)
         ic(current_median_heart_rate)
         
         prompt_constructor.set_heart_rate(current_median_heart_rate)
         prompt_constructor.set_song_genre(song_genre)
         prompt_constructor.set_activity_type(activity_type)
-    
-        if just_started_running:
-            prompt = prompt_constructor.to_json_only_intro()
-        else:
-            prompt = prompt_constructor.to_json()
-
+        prompt = prompt_constructor.to_json()
         ic(prompt)
         
         openAI_response = asyncio.run(fetch_openai_completion(prompt))
@@ -99,22 +96,14 @@ def receive_vital_parameters():
         new_sonic_pi_code = openAI_response.choices[0].message.content
         ic(new_sonic_pi_code)
         
-        if just_started_running:
-            prompt_constructor.set_intro_code(new_sonic_pi_code)
-        else:
-            prompt_constructor.set_sonic_pi_code(new_sonic_pi_code)
+        prompt_constructor.set_sonic_pi_code(new_sonic_pi_code)
         
         # get, send and play the new sonic pi code
-        if just_started_running:
-            current_sonic_pi_code = prompt_constructor.get_intro_code()
-        else:
-            current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
-
-        sonic_pi.stop_all()
+        current_sonic_pi_code = prompt_constructor.get_sonic_pi_code()
         sonic_pi.send_code(current_sonic_pi_code)
 
         just_started_running = False
-            
+
     return jsonify({"message": "Success"}), 200
 
 @app.route('/stop_workout', methods=['GET'])
@@ -144,6 +133,7 @@ def receive_stop_workout():
     audio_server.save_recording_as_mp3(user_id, workout_id)
 
     return jsonify({"message": "Success"}), 200
+
 
 # is probably not needed as you can get it in the frontend
 # @app.route('/get_heart_rate_img', methods=['POST'])

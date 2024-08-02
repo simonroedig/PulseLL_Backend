@@ -59,7 +59,9 @@ class PromptConstructor:
         Please make sure, that your newly generated code also adheres to such a format 
         as in those examples in terms of compilability. As mentioned, you are of course free to
         generate music how you like but must fit the "measured_parameters". Be very creative! The code must work with
-        our setup! Ensure the code will run correctly in Sonic-Pi. Your response must be ready to copy and paste
+        our setup! Ensure the code will run correctly in Sonic-Pi. Make sure that the songs have full volume and are loud.
+        Have high amplitude. They should not be quiet. Prevent too long fade ins.
+        Your response must be ready to copy and paste
         into Sonic-Pi and runable without any errors!
 
         IMPORTANT:
@@ -70,7 +72,7 @@ class PromptConstructor:
         use_debug false
         use_bpm 130
 
-        master = (ramp *range(0, 1, 0.01))
+        master = (ramp *range(0, 1, 0.99))
         kick_volume = 1
         bass_volume = 1
         revbass_volume = 1
