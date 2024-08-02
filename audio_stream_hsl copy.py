@@ -4,6 +4,8 @@ import threading
 import logging
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import pyaudio
+from pathlib import Path
+from icecream import ic
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s')
 
@@ -12,17 +14,21 @@ class AudioStreamServer:
         self.host_ip = host_ip
         self.port = port
         self.segment_duration = 4
-        self.initial_dir = os.getcwd()
-        self.output_dir = "hls_stream"
+        self.initial_dir = Path.cwd()
+        self.output_dir = self.initial_dir / "hls_stream"
         self.buffer_size = 4096
         self.ffmpeg_process = None
         self.ffmpeg_thread = None
         self.http_thread = None
         self.audio_thread = None
-
+        
+        ic(self.initial_dir)
+        ic(self.output_dir)
         # Create output directory if it doesn't exist
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+
+        if not self.output_dir.exists():
+            self.output_dir.mkdir(parents=True)
+
 
     def start_server(self):
         try:
@@ -37,6 +43,7 @@ class AudioStreamServer:
             self.cleanup()
 
     def start_ffmpeg(self):
+        # Define the ffmpeg command using Path objects
         ffmpeg_cmd = [
             'C:/ffmpeg/bin/ffmpeg',
             '-f', 's16le',  # Use raw audio format
@@ -49,9 +56,11 @@ class AudioStreamServer:
             '-hls_time', str(self.segment_duration),  # Segment duration
             '-hls_list_size', '5',  # Number of segments to keep in the playlist
             '-hls_flags', 'delete_segments',  # Delete old segments
-            '-hls_segment_filename', os.path.join(self.output_dir, 'segment_%03d.aac'),
-            os.path.join(self.output_dir, 'playlist.m3u8')
+            '-hls_segment_filename', str(self.output_dir / 'segment_%03d.aac'),  # Path to segment files
+            str(self.output_dir / 'playlist.m3u8')  # Path to playlist file
         ]
+        
+        # Start the ffmpeg process
         ffmpeg_process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
         return ffmpeg_process
 
@@ -81,7 +90,8 @@ class AudioStreamServer:
             self.ffmpeg_process.stdin.close()
 
     def start_http_server(self):
-        os.chdir(self.output_dir)
+        # change os directory to the output directory
+        Path.chdir(self.output_dir)
         server_address = (self.host_ip, self.port)
         httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
         httpd.serve_forever()
@@ -107,11 +117,12 @@ class AudioStreamServer:
             logging.error(f"Error during cleanup: {e}")
 
     def save_recording_as_mp3(self, user_id, workout_id):
-        os.chdir(self.initial_dir)
+        # Change to the initial directory
+        Path.chdir(self.initial_dir)
+
         # Ensure the full_recordings directory exists
-        full_recordings_dir = os.path.join(os.getcwd(), "full_recordings")
-        if not os.path.exists(full_recordings_dir):
-            os.makedirs(full_recordings_dir)
+        full_recordings_dir = self.initial_dir / "full_recordings"
+        full_recordings_dir.mkdir(parents=True, exist_ok=True)
 
         # Check if recording_data is not empty
         if not self.recording_data:
@@ -119,9 +130,9 @@ class AudioStreamServer:
             return
 
         # Create the raw audio file and write the recorded data to it
-        raw_audio_path = 'raw_audio.raw'
+        raw_audio_path = self.initial_dir / 'raw_audio.raw'
         try:
-            with open(raw_audio_path, 'wb') as raw_audio_file:
+            with raw_audio_path.open('wb') as raw_audio_file:
                 raw_audio_file.write(b''.join(self.recording_data))
             logging.info(f"Raw audio data written to {raw_audio_path}")
         except Exception as e:
@@ -129,7 +140,7 @@ class AudioStreamServer:
             return
 
         # Define the path for the mp3 file
-        output_path = os.path.join(full_recordings_dir, f"{user_id}_{workout_id}.mp3")
+        output_path = full_recordings_dir / f"{user_id}_{workout_id}.mp3"
 
         # Use ffmpeg to convert raw audio data to mp3
         ffmpeg_cmd = [
@@ -137,10 +148,10 @@ class AudioStreamServer:
             '-f', 's16le',  # Raw audio format
             '-ar', '44100',  # Sampling rate
             '-ac', '2',  # Number of channels
-            '-i', raw_audio_path,  # Input raw audio file
+            '-i', str(raw_audio_path),  # Input raw audio file
             '-codec:a', 'mp3',  # Encode to MP3
             '-b:a', '128k',  # Bitrate
-            output_path  # Output file
+            str(output_path)  # Output file
         ]
 
         try:
@@ -151,10 +162,10 @@ class AudioStreamServer:
             logging.error(f"Error converting raw audio to MP3: {e}")
         finally:
             # Clean up the temporary raw audio file
-            if os.path.exists(raw_audio_path):
-                os.remove(raw_audio_path)
+            try:
+                raw_audio_path.unlink()  # Delete the file using pathlib
                 logging.info(f"Temporary raw audio file {raw_audio_path} deleted")
-            else:
+            except FileNotFoundError:
                 logging.error(f"Temporary raw audio file {raw_audio_path} not found for deletion")
 
 

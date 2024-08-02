@@ -65,6 +65,9 @@ def receive_vital_parameters():
         return jsonify({"error": "Missing activity_type parameter"}), 400
 
     heart_rate = data['heart_rate']
+
+    if (heart_rate == 0):
+        return jsonify({"error": "Heart rate is 0"}), 200
     unix_timestamp = data['unix_timestamp']
     song_genre = data['song_genre']
     user_id = data['user_id']
