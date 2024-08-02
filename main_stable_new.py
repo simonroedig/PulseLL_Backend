@@ -17,7 +17,7 @@ from openai_client import OpenAIClient
 from audio_stream_hsl import AudioStreamServer
 from sonic_pi import SonicPi
 from vital_threshold_logic import VitalThresholdLogic
-from prompt_constructor_old import PromptConstructor
+from prompt_constructor_stable_new import PromptConstructor
 
 load_dotenv()
 
@@ -121,7 +121,7 @@ def receive_stop_workout():
 
     audio_server.stop_server()
     vital_logic.reset()
-    sonic_pi.send_silent_code()
+    #sonic_pi.send_silent_code()
 
     # check if a file with this workout_id exists in the full_recordings folder
     full_recordings_dir = os.path.join(root_working_dir, "full_recordings")

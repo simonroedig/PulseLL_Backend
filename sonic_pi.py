@@ -81,6 +81,8 @@ class SonicPi:
             code = code[len('```ruby'):].strip()
         if code.startswith('```sonic-pi'):
             code = code[len('```sonic-pi'):].strip()
+        if code.startswith('```sonic_pi'):
+            code = code[len('```sonic_pi'):].strip()
         if code.endswith('```'):
             code = code[:-len('```')].strip()
         return code
