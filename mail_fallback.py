@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import json
 import random
+from pydub import AudioSegment
 
 # python 3.9.(11)
 # .venv\Scripts\activate
@@ -24,12 +25,15 @@ just_started_running = True
 user_id = -1
 workout_id = -1
 
+all_song_array = []
+
 # gets called as often as frontend sends us the vital parameters
 @app.route('/vital_parameters', methods=['POST'])
 def receive_vital_parameters():
     global just_started_running
     global user_id
     global workout_id
+    global all_song_array
     
     data = request.get_json()
     ic(data)
@@ -89,23 +93,25 @@ def receive_vital_parameters():
         if just_started_running:
             just_started_running = False
         
-            random_number = random.choice([1, 2, 3])
+            random_number = random.choice([1, 2])
             data = {
                 "new_song": True,
                 "folder": "intro",
                 "subfolder": f"ran{random_number}",
                 "song": song_filename
             }
+            all_song_array.append(data)
             return jsonify(data), 200
 
         
-        random_number = random.choice([1, 2, 3])
+        random_number = random.choice([1, 2])
         data = {
             "new_song": True,
             "folder": f"{song_genre.lower()}",
             "subfolder": f"ran{random_number}",
             "song": song_filename
         }
+        all_song_array.append(data)
         return jsonify(data), 200
 
     data = {
@@ -124,6 +130,8 @@ def receive_stop_workout():
         return jsonify({"error": "Can't stop workout, cause you haven't started it yet. No user_id provided"}), 400
 
     just_started_running = True
+    
+    concatenate_songs(all_song_array, output_filename=f"{user_id}_{workout_id}.mp3")
 
     return jsonify({"message": "Success"}), 200
 
@@ -170,14 +178,14 @@ def get_full_song():
 
     # Check the folder full_recordings and return the file that has the workout_id in its name
     # The file will be an .mp3 file
-    full_recordings_dir = os.path.join(root_working_dir, "full_recordings")
-    files = os.listdir(full_recordings_dir)
+    final_song_dir = os.path.join(root_working_dir, "final_song")
+    files = os.listdir(final_song_dir)
 
     # Find the file with the workout_id in its name
     mp3_file = None
     for file in files:
         if str(workout_id) in file and file.endswith('.mp3'):
-            mp3_file = os.path.join(full_recordings_dir, file)
+            mp3_file = os.path.join(final_song_dir, file)
             break
 
     if not mp3_file or not os.path.exists(mp3_file):
@@ -185,6 +193,32 @@ def get_full_song():
 
     return send_file(mp3_file, mimetype='audio/mpeg')
 
+def concatenate_songs(all_song_array, root_folder='songdata', output_folder='final_song', output_filename='final_song.mp3'):
+    # Ensure the output directory exists
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Initialize an empty AudioSegment
+    final_song = AudioSegment.empty()
+
+    # Iterate over each song entry in the array
+    for song_data in all_song_array:
+        folder = song_data["folder"]
+        subfolder = song_data["subfolder"]
+        song_filename = song_data["song"]
+
+        # Construct the full path to the song
+        song_path = os.path.join(root_folder, folder, subfolder, song_filename)
+
+        # Load the song and append it to the final song
+        song = AudioSegment.from_wav(song_path)
+        final_song += song
+
+    # Export the final song as an MP3 file
+    output_path = os.path.join(output_folder, output_filename)
+    final_song.export(output_path, format="mp3")
+
+    print(f"Final song created at: {output_path}")
+    
 if __name__ == "__main__":
     print("Starting Flask app...")
     app.run(debug=True, port=5000, host='0.0.0.0', use_reloader=False)
