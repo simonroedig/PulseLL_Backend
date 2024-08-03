@@ -543,7 +543,6 @@ class PromptConstructor:
             "example_techno_song_genre_and_running_activity_130_heartrate": self.example_techno_song_genre_and_running_activity_130_heartrate.replace('\n', ' ').strip(),
             "example_rock_song_genre_and_hiking_activity": self.example_rock_song_genre_and_hiking_activity.replace('\n', ' ').strip(),
             "example_dubstep_song_genre_and_cycling_activity_140_heartrate": self.example_dubstep_song_genre_and_cycling_activity_140_heartrate.replace('\n', ' ').strip(),
-            "example_intro": self.example_intro.replace('\n', ' ').strip(),
             "measured_parameters": {
                 "heart_rate": self.heart_rate,
                 "song_genre": self.song_genre,
@@ -551,7 +550,7 @@ class PromptConstructor:
             },
             "current_sonic_pi_code": self.current_sonic_pi_code
         }
-        return json.dumps(data, indent=2)  # dictionary to JSON string for pretty printing
+        return json.dumps(data, indent=2)  
     
     def to_json_only_intro(self):
         data = {
@@ -565,4 +564,4 @@ class PromptConstructor:
                 "activity_type": self.activity_type
             },
         }
-        return json.dumps(data, indent=2)  # dictionary to JSON string for pretty printing
+        return json.dumps(data, indent=2)  
