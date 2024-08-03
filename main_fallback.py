@@ -115,7 +115,8 @@ def receive_vital_parameters():
                 "song": song_filename
             }
             all_song_array.append(data)
-            return jsonify(data), 200
+            #return jsonify(data), 200
+            return send_file(get_single_song(data), mimetype='audio/wav')
 
         
         random_number = random.choice([1, 2])
@@ -126,8 +127,9 @@ def receive_vital_parameters():
             "song": song_filename
         }
         all_song_array.append(data)
-        return jsonify(data), 200
-
+        #return jsonify(data), 200
+        return send_file(get_single_song(data), mimetype='audio/wav')
+        
     data = {
             "new_song": False
         }
@@ -203,6 +205,16 @@ def concatenate_songs(all_song_array, root_folder='songdata', output_folder='fin
     final_song.export(output_path, format="mp3")
 
     print(f"Final song created at: {output_path}")
+
+def get_single_song(song_data, root_folder='songdata'):
+    folder = song_data["folder"]
+    subfolder = song_data["subfolder"]
+    song_filename = song_data["song"]
+
+    # the full path to the song
+    song = os.path.join(root_folder, folder, subfolder, song_filename)
+
+    return song
 
 async def fetch_openai_completion(prompt):
     return await openai.get_completion(system_message="", user_message=prompt)
