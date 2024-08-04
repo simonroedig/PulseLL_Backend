@@ -101,13 +101,35 @@ def receive_vital_parameters():
             song = 160
             
         ic(song)    
-        song_filename = str(song) + ".wav"
+        song_filename = str(song) + ".mp3"
         ic(song_filename)
         
         if just_started_running:
             just_started_running = False
+            
+            #######
+            if regenerate == True or regenerate == "True" or regenerate == "true":
+                # check the last entry of all_song_array (if it exists) and generate a random number that was not used by this subfolder yet
+                if all_song_array:
+                    last_entry = all_song_array[-1]
+                    last_subfolder = last_entry["subfolder"]
+                    last_random_number = int(last_subfolder[3:])
+                    random_numbers = [1, 2, 3]
+                    random_numbers.remove(last_random_number)
+                    random_number = random.choice(random_numbers)
+                    
+                    data = {
+                        "new_song": True,
+                        "folder": "intro",
+                        "subfolder": f"ran{random_number}",
+                        "song": song_filename
+                    }
+                    all_song_array.append(data)
+                    return send_file(get_single_song(data), mimetype='audio/mpeg')
+            #######
+                    
         
-            random_number = random.choice([1, 2])
+            random_number = random.choice([1, 2, 3])
             data = {
                 "new_song": True,
                 "folder": "intro",
@@ -116,10 +138,30 @@ def receive_vital_parameters():
             }
             all_song_array.append(data)
             #return jsonify(data), 200
-            return send_file(get_single_song(data), mimetype='audio/wav')
+            return send_file(get_single_song(data), mimetype='audio/mpeg')
 
+        #######
+        if regenerate == True or regenerate == "True" or regenerate == "true":
+            # check the last entry of all_song_array (if it exists) and generate a random number that was not used by this subfolder yet
+            if all_song_array:
+                last_entry = all_song_array[-1]
+                last_subfolder = last_entry["subfolder"]
+                last_random_number = int(last_subfolder[3:])
+                random_numbers = [1, 2, 3]
+                random_numbers.remove(last_random_number)
+                random_number = random.choice(random_numbers)
+                
+                data = {
+                    "new_song": True,
+                    "folder": f"{song_genre.lower()}",
+                    "subfolder": f"ran{random_number}",
+                    "song": song_filename
+                }
+                all_song_array.append(data)
+                return send_file(get_single_song(data), mimetype='audio/mpeg')
+        #######
         
-        random_number = random.choice([1, 2])
+        random_number = random.choice([1, 2, 3])
         data = {
             "new_song": True,
             "folder": f"{song_genre.lower()}",
@@ -128,7 +170,7 @@ def receive_vital_parameters():
         }
         all_song_array.append(data)
         #return jsonify(data), 200
-        return send_file(get_single_song(data), mimetype='audio/wav')
+        return send_file(get_single_song(data), mimetype='audio/mpeg')
         
     data = {
             "new_song": False
@@ -197,7 +239,7 @@ def concatenate_songs(all_song_array, root_folder='songdata', output_folder='fin
         song_path = os.path.join(root_folder, folder, subfolder, song_filename)
 
         # Load the song and append it to the final song
-        song = AudioSegment.from_wav(song_path)
+        song = AudioSegment.from_mp3(song_path)
         final_song += song
 
     # Export the final song as an MP3 file
