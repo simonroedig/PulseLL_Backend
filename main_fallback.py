@@ -122,10 +122,14 @@ def receive_vital_parameters():
                         "new_song": True,
                         "folder": "intro",
                         "subfolder": f"ran{random_number}",
-                        "song": song_filename
+                        "song": song_filename,
+                        "fullname": f"intro_ran{random_number}_{song_filename.replace('.mp3', '')}"
                     }
                     all_song_array.append(data)
-                    return send_file(get_single_song(data), mimetype='audio/mpeg')
+                    ic("returned an intro song REGENERATE")
+                    ic(data.get("fullname"))
+                    #return send_file(get_single_song(data), mimetype='audio/mpeg')
+                    return jsonify(data), 200
             #######
                     
         
@@ -134,11 +138,16 @@ def receive_vital_parameters():
                 "new_song": True,
                 "folder": "intro",
                 "subfolder": f"ran{random_number}",
-                "song": song_filename
+                "song": song_filename,
+                "fullname": f"intro_ran{random_number}_{song_filename.replace('.mp3', '')}"
             }
             all_song_array.append(data)
             #return jsonify(data), 200
-            return send_file(get_single_song(data), mimetype='audio/mpeg')
+            ic("returned a intro song")
+            ic(data.get("fullname"))
+            print(get_single_song(data))
+            #return send_file(get_single_song(data), mimetype='audio/mpeg')
+            return jsonify(data), 200
 
         #######
         if regenerate == True or regenerate == "True" or regenerate == "true":
@@ -155,10 +164,14 @@ def receive_vital_parameters():
                     "new_song": True,
                     "folder": f"{song_genre.lower()}",
                     "subfolder": f"ran{random_number}",
-                    "song": song_filename
+                    "song": song_filename,
+                    "fullname": f"{song_genre.lower()}_ran{random_number}_{song_filename.replace('.mp3', '')}"
                 }
                 all_song_array.append(data)
-                return send_file(get_single_song(data), mimetype='audio/mpeg')
+                ic("returned a normal song REGENERATE")
+                ic(data.get("fullname"))
+                #return send_file(get_single_song(data), mimetype='audio/mpeg')
+                return jsonify(data), 200
         #######
         
         random_number = random.choice([1, 2, 3])
@@ -166,11 +179,16 @@ def receive_vital_parameters():
             "new_song": True,
             "folder": f"{song_genre.lower()}",
             "subfolder": f"ran{random_number}",
-            "song": song_filename
+            "song": song_filename,
+            "fullname": f"{song_genre.lower()}_ran{random_number}_{song_filename.replace('.mp3', '')}"
         }
         all_song_array.append(data)
         #return jsonify(data), 200
-        return send_file(get_single_song(data), mimetype='audio/mpeg')
+        ic("returned a normal song")
+        ic(data.get("fullname"))
+        print(get_single_song(data))
+        #return send_file(get_single_song(data), mimetype='audio/mpeg')
+        return jsonify(data), 200
         
     data = {
             "new_song": False
