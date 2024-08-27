@@ -38,6 +38,6 @@ This repository contains all the backend code for PulseLL. The code is organized
 
 - `main.py`: The main Flask application file, where routes and logic are defined.
 - `vital_threshold_logic.py`: Contains the logic for determining when to change the music based on heart rate data.
-- `prompt_constructor.py`: Handles the creation of prompts for the AI model.
+- `prompt_constructor.py`: Handles the creation of prompts for ChatGPT.
 - `sonic_pi.py and run_stop_sonic_pi.py`: Manages communication with Sonic Pi and the execution of generated code.
 - `audio_streaming.py`: Implements the live audio streaming functionality.
