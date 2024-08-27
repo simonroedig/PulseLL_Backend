@@ -1,6 +1,5 @@
 # Make sure, to paste the following lines into SonicPi, enable OSC, and click run:
 
-
 use_osc "localhost", 4560
 
 live_loop :executor do
