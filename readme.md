@@ -6,7 +6,7 @@ PulseLL is a IOS Application designed to enhance the workout experience through 
 
 ## Frontend Repository
 
-This repository only contains the backend code for PulseLL. The corresponding frontend code, which handles the user interface and data collection from wearable devices, can be found in the [PulseLL Frontend Repository](https://github.com/your-username/pulseLL-frontend).
+This repository only contains the backend code for PulseLL. The corresponding frontend code, which handles the user interface and data collection from wearable devices, can be found in the [PulseLL Frontend Repository](https://github.com/tudi2d/piis_pulsell).
 
 ## Why PulseLL?
 
